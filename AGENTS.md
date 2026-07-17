@@ -2,22 +2,22 @@
 
 ## 1. Purpose
 
-This file defines the mandatory development rules for Ariadne.
+This file defines the mandatory development rules for the public Ariadne
+repository.
 
-Any AI agent, automated coding tool, or human contributor working in this
-repository must follow these instructions.
+Any contributor or automation working in this repository must follow these
+instructions.
 
 This document is an operational contract. It defines:
 
-- how changes must be planned;
 - how the existing architecture must be respected;
 - how tests and implementation must be produced;
-- how project knowledge must be maintained;
-- how changes must be explained to the maintainer;
-- which artifacts are public and which must remain private.
+- how public project knowledge must be maintained;
+- which artifacts belong in the public repository.
 
-Detailed explanations of this workflow may exist in private files, but this
-document remains the authoritative source for repository behavior.
+Private project memory and development-process material belong in the private
+companion repository, `ariadne-private`. Its own `AGENTS.md` governs that
+private workspace.
 
 ---
 
@@ -48,39 +48,26 @@ This includes:
 Tests may contain non-English data only when the behavior being tested
 specifically requires multilingual content.
 
-### 2.2 Private and ephemeral content
+### 2.2 Private companion content
 
-Private and ephemeral development material must be written in Portuguese.
+Private and ephemeral development material must not be committed to this
+public repository.
 
-Portuguese private and ephemeral content must use standard Portuguese
-orthography, including accents, cedillas, and other required diacritics. Do not
-transliterate Portuguese into ASCII-only text, except inside literal code,
-commands, environment variables, file paths, identifiers, or quoted external
-output.
-
-This includes content stored under:
+That material belongs in the private companion repository, `ariadne-private`,
+under:
 
 ```text
-.ai/
-.project/
+ai/
+project/
+```
+
+If local private workspaces exist inside this public repository, they must use
+the same names and remain ignored by Git:
+
+```text
+ai/
+project/
 ````
-
-Examples:
-
-* step-by-step implementation plans;
-* task execution reports;
-* private development tutorials;
-* AI prompts;
-* temporary architectural reasoning;
-* investigation notes;
-* personal roadmap notes;
-* open questions;
-* discarded alternatives;
-* private traceability documents;
-* debugging journals.
-
-Interactive explanations and execution reports addressed to the maintainer
-must also be written in Portuguese unless explicitly requested otherwise.
 
 ### 2.3 Separation rule
 
@@ -88,8 +75,8 @@ Public files must never depend on private files to explain how the software
 works.
 
 Private files may reference public documentation, but public documentation
-must remain complete and understandable without access to `.ai/` or
-`.project/`.
+must remain complete and understandable without access to any private companion
+repository.
 
 Do not copy private planning discussions into public documentation unless the
 information represents a stable and relevant truth about the software.
@@ -130,52 +117,31 @@ changes.
 
 Do not create public documents merely to record that a task was executed.
 
-### 3.2 Private AI workspace
+### 3.2 Private companion repository
 
-The `.ai/` directory contains material used by AI agents during development.
-
-Suggested structure:
-
-```text
-.ai/
-├── development-handbook.md
-├── plans/
-├── reports/
-├── investigations/
-└── prompts/
-```
-
-Typical responsibilities:
-
-* `development-handbook.md`: detailed tutorial explaining this workflow;
-* `plans/`: plans prepared before implementation;
-* `reports/`: task completion and code walkthrough reports;
-* `investigations/`: technical research and debugging notes;
-* `prompts/`: reusable private prompts and agent instructions.
-
-### 3.3 Private project workspace
-
-The `.project/` directory contains the maintainer's private project memory.
-
-Suggested structure:
+Private project memory and development-process material belong in a sibling
+private repository conventionally named `ariadne-private`.
 
 ```text
-.project/
-├── roadmap.md
-├── backlog.md
-├── traceability.md
-├── open-questions.md
-└── notes/
+Projects/
+├── ariadne/
+└── ariadne-private/
+    ├── ai/
+    └── project/
 ```
 
-The distinction is:
+Inside `ariadne-private`, `ai/` and `project/` must not use a leading dot. The
+repository itself is private, so filesystem hiding is unnecessary.
 
-* `.ai/` contains AI operating material;
-* `.project/` contains private project management and product reasoning.
+The public repository must remain complete and understandable without access to
+`ariadne-private`.
 
-Both directories must remain excluded from version control.
+Do not use a Git submodule for the private companion repository unless the
+maintainer explicitly requests it. Prefer sibling repositories because they
+avoid exposing private repository metadata in the public repository and are
+simpler for contributors who do not have private access.
 
-### 3.4 Authority order
+### 3.3 Authority order
 
 When repository information conflicts, use this order:
 
@@ -194,16 +160,16 @@ contract, explain the conflict before implementing it.
 
 ---
 
-## 4. Required Development Workflow
+## 4. Development Workflow
 
-Every meaningful change must follow the workflow below.
+Every meaningful public repository change must follow the workflow below.
 
 Small and mechanical changes may use a shortened plan, but they must still
-respect architecture, testing, verification, and reporting rules.
+respect architecture, testing, verification, and documentation rules.
 
 ### 4.1 Preflight
 
-Before modifying code, the agent must:
+Before modifying code, contributors must:
 
 1. read this `AGENTS.md`;
 2. read the relevant product documentation;
@@ -212,11 +178,10 @@ Before modifying code, the agent must:
 5. search the repository for existing implementations;
 6. inspect related tests and fixtures;
 7. identify the current public components involved;
-8. inspect relevant private plans or project notes when available;
-9. review the current Git diff and repository status.
+8. review the current Git diff and repository status.
 
-The agent must not assume that a new class, function, fixture, adapter, helper,
-or file is necessary before searching for an existing equivalent.
+Do not assume that a new class, function, fixture, adapter, helper, or file is
+necessary before searching for an existing equivalent.
 
 ### 4.2 Understand the requested behavior
 
@@ -250,34 +215,7 @@ Every significant responsibility must have one canonical location.
 Do not implement the same business rule independently in multiple adapters,
 commands, services, or tests.
 
-### 4.4 Prepare a private change plan
-
-For meaningful changes, create or update a Portuguese plan under:
-
-```text
-.ai/plans/
-```
-
-The plan must state:
-
-* objective;
-* requested behavior;
-* scope;
-* behavior that will not be changed;
-* existing components to reuse;
-* files expected to change;
-* files expected to be created;
-* proposed architectural decisions;
-* expected tests;
-* relevant risks;
-* verification commands;
-* documentation that may require updates.
-
-Every proposed new file or abstraction must include a reason for existing.
-
-The plan is an implementation aid, not a public project artifact.
-
-### 4.5 Implement a vertical slice
+### 4.4 Implement a vertical slice
 
 Prefer delivering observable behavior across the necessary layers instead of
 implementing isolated technical layers.
@@ -306,7 +244,7 @@ unless the architecture clearly requires that order.
 
 A completed slice should produce behavior that can be exercised and verified.
 
-### 4.6 Implement tests and production code
+### 4.5 Implement tests and production code
 
 Tests and production code may be developed within the same implementation
 cycle.
@@ -316,7 +254,7 @@ production code.
 
 However, the semantic integrity of tests must be preserved.
 
-The agent must not:
+Contributors must not:
 
 * weaken an assertion to make an implementation pass;
 * delete a failing scenario without justification;
@@ -326,7 +264,7 @@ The agent must not:
 * silently convert an integration test into a unit test;
 * silently remove coverage of a failure path.
 
-### 4.7 Verify the change
+### 4.6 Verify the change
 
 Before declaring a task complete, run the relevant available checks:
 
@@ -355,7 +293,7 @@ Passing tests alone is not sufficient.
 The implementation must also respect the architecture and the requested
 behavior.
 
-### 4.8 Update canonical documentation
+### 4.7 Update canonical documentation
 
 Update public documentation only when the implementation changes a stable
 truth about the software.
@@ -374,30 +312,10 @@ Do not publish:
 
 * temporary plans;
 * task-by-task narratives;
-* prompt history;
+* private process history;
 * internal reasoning transcripts;
 * debugging journals;
 * discarded designs.
-
-### 4.9 Produce a private execution report
-
-After completing a meaningful change, create or update a Portuguese report
-under:
-
-```text
-.ai/reports/
-```
-
-The report must explain:
-
-* what behavior was delivered;
-* which files changed;
-* which tests were added or changed;
-* which architectural decisions were made;
-* what was verified;
-* remaining limitations or risks;
-* the execution path through the software;
-* how the maintainer can manually observe the behavior.
 
 ---
 
@@ -1059,8 +977,7 @@ result_test
 
 ### 8.8 Test modification categories
 
-The private execution report must classify every changed test under one of
-these categories:
+Every changed test should be understood under one of these categories:
 
 * new behavior coverage;
 * regression coverage;
@@ -1086,7 +1003,7 @@ not require approval when its protected behavior remains unchanged.
 
 ### 8.9 Test integrity
 
-The agent must not:
+Contributors must not:
 
 * weaken an assertion to make production code pass;
 * delete a failing scenario without justification;
@@ -1166,46 +1083,7 @@ integration, or contract verification.
 
 ---
 
-## 9. Human Understanding as a Deliverable
-
-A task is not complete merely because the code passes its tests.
-
-The maintainer must be able to understand the behavior that was introduced.
-
-Every meaningful private execution report must contain a code walkthrough in
-Portuguese explaining:
-
-1. where the behavior enters the application;
-2. which component receives it first;
-3. which objects are created;
-4. how those objects collaborate;
-5. where external systems are called;
-6. how provider data is normalized;
-7. where decisions are made;
-8. where failures may occur;
-9. which flow logs reveal each stage;
-10. which tests protect the behavior.
-
-Architectural decisions must be explained in terms of responsibilities and
-trade-offs, not merely named.
-
-Poor explanation:
-
-```text
-Foi usado dependency injection porque é uma boa prática.
-```
-
-Better explanation:
-
-```text
-O serviço recebe o adaptador pelo construtor para que a regra de seleção de
-ofertas possa ser testada sem abrir um navegador e para impedir que o núcleo
-da aplicação dependa diretamente do Selenium.
-```
-
----
-
-## 10. Definition of Done
+## 9. Definition of Done
 
 A task may be considered complete only when all applicable conditions are
 satisfied:
@@ -1219,26 +1097,22 @@ satisfied:
 * external-system details remain isolated;
 * flow logging exists where it improves execution understanding;
 * public code and documentation are in English;
-* private plans and reports are in Portuguese;
 * relevant canonical documentation is updated;
 * no unnecessary files or abstractions were created;
 * no dead or duplicated code was introduced;
 * no secrets or sensitive data were added;
-* the private execution report explains the implementation;
 * remaining limitations and risks are recorded.
 
 ---
 
-## 11. Prohibited Actions
+## 10. Prohibited Actions
 
-The agent must not:
+Contributors must not:
 
 * begin a meaningful implementation without inspecting existing code;
 * create duplicate components without searching the repository;
-* create public planning or execution-report documents;
-* expose private prompts or project notes;
+* publish private planning or project notes in this repository;
 * place Portuguese content in public code or documentation;
-* place English step-by-step reports in `.ai/` or `.project/`;
 * weaken tests to make implementation pass;
 * alter expected behavior without approval;
 * silently change architecture;
@@ -1254,7 +1128,7 @@ The agent must not:
 
 ---
 
-## 12. Ariadne Product Integrity Rules
+## 11. Ariadne Product Integrity Rules
 
 Ariadne must prioritize trustworthy results over result quantity.
 
@@ -1283,7 +1157,7 @@ unexpected page structures must be reported as explicit provider failures.
 
 ---
 
-## 13. Git Discipline
+## 12. Git Discipline
 
 Before completing a task, inspect:
 
@@ -1305,24 +1179,6 @@ When commits are requested:
 * commit messages must be in English;
 * each commit should represent a coherent change;
 * do not mix unrelated refactoring with behavioral changes;
-* do not include `.ai/` or `.project/` content;
+* do not include `ai/` or `project/` content in commits to this public
+  repository;
 * do not claim tests passed unless they were executed successfully.
-
----
-
-## 14. Final Response Requirements
-
-After completing a development task, the response to the maintainer must be
-written in Portuguese and include:
-
-* behavior implemented;
-* relevant architectural decisions;
-* files created or modified;
-* tests added or changed;
-* checks actually executed;
-* a brief execution walkthrough;
-* remaining risks, limitations, or pending work.
-
-Do not provide long unrelated suggestions.
-
-Keep the report focused on the completed task and its immediate consequences.
