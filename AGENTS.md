@@ -1116,8 +1116,12 @@ Contributors must not:
 * weaken tests to make implementation pass;
 * alter expected behavior without approval;
 * silently change architecture;
-* bypass CAPTCHA or access controls;
-* implement mechanisms intended to evade provider security controls;
+* use credentials, cookies, sessions, or tokens that do not belong to the user;
+* bypass authentication, authorization, paywalls, account boundaries, private
+  areas, or access controls protecting non-public content;
+* exploit vulnerabilities in third-party systems;
+* modify third-party service data without authorization;
+* intentionally overload providers or perform denial-of-service behavior;
 * fabricate prices, durations, airlines, availability, or fare conditions;
 * treat teaser prices as confirmed offers;
 * store sensitive browser data in logs or fixtures;
@@ -1152,8 +1156,14 @@ Provider failures are expected operational conditions.
 One failing provider must not prevent unrelated providers from being queried
 unless continuing would produce unsafe or invalid behavior.
 
-CAPTCHA, authentication requirements, access denial, missing selectors, and
-unexpected page structures must be reported as explicit provider failures.
+Unresolved CAPTCHA, authentication requirements, access denial, rate limits,
+missing selectors, and unexpected page structures must be reported as explicit
+provider states.
+
+Ariadne may automate public fare searches and may handle CAPTCHA challenges
+that are necessary to complete a public consultation. This does not authorize
+accessing accounts, private areas, non-public data, or provider systems without
+authorization.
 
 ---
 
