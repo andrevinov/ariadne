@@ -52,6 +52,12 @@ specifically requires multilingual content.
 
 Private and ephemeral development material must be written in Portuguese.
 
+Portuguese private and ephemeral content must use standard Portuguese
+orthography, including accents, cedillas, and other required diacritics. Do not
+transliterate Portuguese into ASCII-only text, except inside literal code,
+commands, environment variables, file paths, identifiers, or quoted external
+output.
+
 This includes content stored under:
 
 ```text
