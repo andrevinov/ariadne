@@ -1139,14 +1139,23 @@ Contributors must not:
 
 Ariadne must prioritize trustworthy results over result quantity.
 
-A fare may be treated as confirmed only when it can be associated with:
+A public search request must include, at minimum:
 
 * the requested origin and destination;
-* the requested outbound date;
-* the requested return date;
-* the requested passenger count;
-* a round-trip journey;
+* the requested outbound date.
+
+Other search fields, such as return date, passenger count, cabin class,
+airline, price range, or provider-specific parameters, are optional until a
+provider requires them. Provider-specific requirements must be handled
+explicitly instead of being silently promoted into global search requirements.
+
+A fare may be treated as confirmed only when it can be associated with:
+
 * a clearly displayed price;
+* a currency;
+* a cabin class;
+* a flight date;
+* a flight time;
 * an identifiable source.
 
 The application must preserve source provenance for every collected offer.
