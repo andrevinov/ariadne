@@ -1122,6 +1122,9 @@ Contributors must not:
 * exploit vulnerabilities in third-party systems;
 * modify third-party service data without authorization;
 * intentionally overload providers or perform denial-of-service behavior;
+* use automatic IP rotation, proxy pools, residential proxies, or aggressive
+  network-origin switching to bypass explicit provider blocks, bans, or rate
+  limits;
 * fabricate prices, durations, airlines, availability, or fare conditions;
 * treat teaser prices as confirmed offers;
 * store sensitive browser data in logs or fixtures;
@@ -1164,6 +1167,13 @@ Ariadne may automate public fare searches and may handle CAPTCHA challenges
 that are necessary to complete a public consultation. This does not authorize
 accessing accounts, private areas, non-public data, or provider systems without
 authorization.
+
+Ariadne may support an explicitly configured user-controlled proxy or VPN as
+part of its runtime network configuration. Provider blocks, IP bans, rate
+limits, and access throttling must be represented as operational provider
+states. The application should respond with reduced frequency, backoff,
+cooldown, cache reuse, or temporary provider suspension instead of escalating
+traffic or rotating network origins to force access.
 
 ---
 
