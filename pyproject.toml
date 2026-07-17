@@ -1,0 +1,17 @@
+[project]
+name = "ariadne"
+version = "0.1.0"
+description = "A resilient flight fare tracker that monitors multiple travel sites, validates real prices, and records the best available deals."
+authors = [
+    {name = "André Carvalho",email = "me@andrev.me"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
