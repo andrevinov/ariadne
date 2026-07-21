@@ -5,8 +5,11 @@ implementation choices.
 
 ## BR-001 - Minimum search input
 
-A public fare search request must include origin, destination, and outbound
-date.
+A public fare search request must include origin airport, destination airport,
+and outbound date.
+
+For the initial contract, origin and destination must be provided as IATA
+airport codes.
 
 ## BR-002 - Optional search fields
 
@@ -15,7 +18,10 @@ selection, and provider-specific parameters are optional globally until a
 provider-specific rule requires them for that provider.
 
 Provider-specific requirements must be reported explicitly and must not
-silently become global requirements.
+silently become global requirements. In the default provider set, a provider
+with missing provider-specific parameters may be skipped. In an explicitly
+selected provider set, missing provider-specific parameters must be reported as
+input errors.
 
 ## BR-003 - Public fare data only
 
@@ -81,8 +87,9 @@ are product-relevant operational or contractual constraints. Ariadne must make
 their effects observable through provider states, configuration, or user-facing
 results instead of hiding them behind fabricated success.
 
-Concrete frequency, backoff, cooldown, cache, and suspension values are
-provider-specific and must be defined later.
+Global conservative defaults must exist for frequency, backoff, cooldown,
+cache, retry, and suspension behavior. Provider-specific values may override
+those defaults.
 
 ## BR-012 - Configurable network egress limits
 
@@ -131,3 +138,42 @@ The initial product is intended for personal, private, and educational use.
 Collected data must not be sold or used as the data source for a public
 commercial product.
 
+## BR-019 - Provider selection semantics
+
+When no provider-selection flag is used, Ariadne must query every configured
+provider that can operate with the supplied input. Providers that require
+missing provider-specific parameters are skipped from that default provider set
+without making the run fail.
+
+When `--all`, `--include`, or `--exclude` is used, Ariadne must treat the
+remaining provider set as explicitly selected. If any selected provider
+requires a missing parameter, Ariadne must raise an informative input error
+that names the provider and the missing parameter and tells the user to either
+provide the parameter or remove the provider from the selected set.
+
+## BR-020 - Runtime providers have no fixed priority
+
+Google Flights is the first provider for development. That does not create a
+runtime priority rule among providers. Ariadne may use deterministic ordering
+for execution, logs, and display, but no provider is inherently more
+authoritative because of its order.
+
+## BR-021 - Google Sheets data-only export
+
+When exporting to Google Sheets, Ariadne must send data rows only. It must not
+create or rewrite header rows.
+
+If the user configures export columns, Ariadne must send values in that order.
+If the user does not configure columns, Ariadne must use the same fields
+returned by the normal application output.
+
+Ariadne must be able to identify where to append data in the configured sheet.
+
+## BR-022 - Exact duplicate persistence behavior
+
+Ariadne must retain every collection it performs. If a newly collected flight
+or offer is literally identical to an existing stored record according to the
+future deduplication key, Ariadne must not create a duplicate record for that
+same fact. It must update a timestamp such as `updated_at`.
+
+The exact deduplication key belongs to the persistence design.

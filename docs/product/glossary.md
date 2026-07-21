@@ -14,7 +14,16 @@ query configured providers for flight fares.
 
 ## Minimum search request
 
-A fare search request with origin, destination, and outbound date.
+A fare search request with origin IATA airport code, destination IATA airport
+code, and outbound date.
+
+## IATA airport code
+
+A three-letter airport identifier used by the initial Ariadne search contract
+for origin and destination airports.
+
+Small airports outside major reservation systems may not have IATA codes.
+Those airports are outside the initial minimum search input.
 
 ## Provider
 
@@ -24,8 +33,28 @@ Skyscanner, KAYAK, Momondo, Voopter, or Melhores Destinos.
 ## Provider-specific requirement
 
 A parameter required by one provider but not by the global Ariadne product
-contract. Such a requirement must be reported for that provider instead of
-silently changing the global minimum search request.
+contract.
+
+Such a requirement must not silently change the global minimum search request.
+In the default provider set, it may make the provider ineligible for that run.
+In an explicitly selected provider set, it must be reported as an input error.
+
+## Default provider set
+
+The configured providers that can operate with the input supplied for a run
+when the user does not use provider-selection flags.
+
+## Explicitly selected provider set
+
+The provider set produced when the user uses `--all`, `--include`, or
+`--exclude`. Ariadne must validate that every provider in this set has the
+parameters it requires before collection starts.
+
+## Google Flights
+
+A public travel search provider. Ariadne must start provider development with
+Google Flights because it is expected to have broad fare coverage. This does
+not make Google Flights the highest-priority provider at runtime.
 
 ## Candidate offer
 
@@ -120,6 +149,12 @@ collection.
 Skipping a provider for a configured period after repeated or serious
 operational failures, limits, or blocks.
 
+## Operational defaults
+
+The conservative global values Ariadne uses for provider frequency, backoff,
+cooldown, cache, retry, and suspension behavior when no CLI or provider-specific
+configuration overrides them.
+
 ## Configurable network egress
 
 An explicit user-controlled runtime setting for proxy or VPN use. It may be
@@ -154,3 +189,17 @@ The canonical local persistence target for Ariadne's first version.
 An optional destination that consumes Ariadne data, such as Google Sheets.
 Side exports are not the canonical database for the first version.
 
+## Google Sheets export
+
+A side export that appends Ariadne data rows to a configured Google Sheets
+spreadsheet. It does not create header rows.
+
+## Exact duplicate
+
+A newly collected flight or offer that is literally identical to an existing
+stored record according to Ariadne's future deduplication key.
+
+## `updated_at`
+
+A timestamp that may be updated when Ariadne sees an exact duplicate instead
+of inserting a duplicate record for the same fact.

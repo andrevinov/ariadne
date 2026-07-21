@@ -46,8 +46,11 @@ from command-line parameters, configuration files, and environment variables.
 
 A travel provider is a public website or service that may expose fare data.
 Candidate providers for exploration include Google Flights, Skyscanner, KAYAK,
-Momondo, Voopter, and Melhores Destinos. The order and first supported
-provider set are still pending delivery planning.
+Momondo, Voopter, and Melhores Destinos.
+
+Initial development must start with Google Flights because it is expected to
+have broad fare coverage. This is a development starting point, not a runtime
+provider priority rule.
 
 ### Local operator
 
@@ -81,8 +84,8 @@ Ariadne must support these product capabilities in the initial product horizon:
 
 A public search request must include, at minimum:
 
-- origin;
-- destination;
+- origin airport as an IATA airport code;
+- destination airport as an IATA airport code;
 - outbound date.
 
 The initial product contract may also accept optional fields:
@@ -95,11 +98,39 @@ The initial product contract may also accept optional fields:
 - provider selection;
 - provider-specific parameters.
 
+Origin and destination use IATA airport codes in the initial contract. Airports
+without IATA codes are outside the initial minimum search input and may be
+handled later as provider-specific or extended location support.
+
 Provider-specific requirements must not silently become global product
 requirements. If a provider requires a return date, passenger count, cabin
-class, or another parameter that is optional globally, Ariadne must represent
-that requirement for that provider instead of changing the minimum request for
-all searches.
+class, or another parameter that is optional globally, Ariadne must treat that
+requirement as provider-specific.
+
+## Provider Selection Contract
+
+When a search runs without provider-selection flags, Ariadne must attempt every
+configured provider that can produce values from the supplied input. Providers
+that need missing provider-specific parameters are skipped from the default
+provider set without making the whole run fail.
+
+Provider selection changes when the user uses `--all`, `--include`, or
+`--exclude`:
+
+- `--all` explicitly selects all configured providers;
+- `--include` explicitly selects the listed providers;
+- `--exclude` explicitly selects all configured providers except the excluded
+  providers.
+
+When providers are explicitly selected, Ariadne must validate that the supplied
+input is sufficient for every selected provider. If a selected provider needs a
+missing parameter, Ariadne must raise an informative input error naming the
+provider, naming the missing parameter, and explaining that the user must
+either provide that parameter or remove the provider from the selected set.
+
+There is no fixed runtime priority among providers. Provider ordering may be
+used for deterministic execution, logs, or display, but it must not imply that
+one provider is more authoritative than another.
 
 ## Result Contract
 
@@ -153,6 +184,31 @@ The exact state names may be refined during implementation, but the product
 must keep the distinction between successful collection, provider failure,
 blocked access, operational throttling, ambiguous data, and unconfirmed data.
 
+## Default Operational Limits
+
+Ariadne must start with conservative global operational defaults. Every default
+must be overridable for one run through CLI flags, globally through the TOML
+configuration file, and per provider through the TOML configuration file.
+
+Initial global defaults:
+
+- maximum concurrent providers: `1`;
+- delay between provider attempts in one run: `30` seconds;
+- provider timeout: `90` seconds;
+- retry attempts after transient failures: `1`;
+- initial retry backoff: `300` seconds;
+- retry backoff multiplier: `2.0`;
+- maximum retry backoff: `3600` seconds;
+- cooldown after rate limit, throttling, IP block, or access denial:
+  `3600` seconds;
+- cache TTL for equivalent search requests: `3600` seconds;
+- temporary suspension after consecutive limit failures: `3` failures;
+- temporary suspension duration: `86400` seconds;
+- scheduling jitter: `20` percent.
+
+These values are intentionally conservative defaults, not provider-specific
+final tuning.
+
 ## Public Automation Policy
 
 Ariadne may automate public fare searches that a user could perform manually.
@@ -190,8 +246,19 @@ Ariadne must preserve every collection within the scope of a search. It must
 not preserve only the best offer unless a future, explicit product rule changes
 the retention behavior.
 
-The exact schema, deduplication policy, retention policy, and migration
-strategy are outside this contract and must be defined later.
+The initial persistence model should follow the product glossary closely. Core
+stored concepts are expected to include providers, search requests, provider
+states, candidate offers, confirmed offers, flights, collections, exports, and
+timestamps.
+
+Ariadne must retain every collection it performs. When an incoming flight or
+offer record is literally identical to an existing stored record according to
+the future deduplication key, Ariadne must not create a duplicate row for that
+same fact. It must update a timestamp such as `updated_at` while preserving the
+historical collection context.
+
+The exact schema, indexes, migration strategy, and deduplication key are still
+implementation details for the architectural baseline and persistence slice.
 
 ## Configuration and Execution
 
@@ -202,6 +269,10 @@ the required inputs from command-line parameters, a TOML configuration file,
 and environment variables. Runtime history belongs in local persistence, not in
 process memory carried between executions.
 
+CLI flags must be able to override the configured operational limits for the
+current run. The TOML file must support both global defaults and provider-
+specific overrides.
+
 Development environments may use `.env` files for local secrets and settings.
 Production secrets must be provided by environment variables from the server,
 container, or deployment environment.
@@ -211,15 +282,18 @@ container, or deployment environment.
 Known product integrations are:
 
 - public travel provider websites or services;
-- browser automation or equivalent interaction tooling, still to be chosen;
+- browser automation or equivalent interaction tooling, with Playwright
+  recommended for initial evaluation and final confirmation pending;
 - SQLite as first-version canonical local persistence;
 - the operating system scheduler, such as cron;
-- Docker or equivalent packaging, still to be planned;
-- Google Sheets or Google Drive as possible side export destinations.
+- Docker for deployable runtime images;
+- versioned package distribution for Linux and Windows;
+- Google Sheets or Google Drive as side export destinations through Google's
+  official Python API client.
 
-The product contract does not choose the browser automation tool, Google
-integration library, storage schema, container strategy, or provider adapter
-structure.
+The product contract does not define provider adapter structure, database
+schema, container implementation, distribution build tooling, or final browser
+automation architecture.
 
 ## Out of Scope
 
@@ -248,19 +322,25 @@ The initial product contract excludes:
 - storing sensitive browser profiles, cookies, tokens, or credentials in logs,
   fixtures, or repository files.
 
-## Non-Blocking Open Items
+## Refined Items for Later Phases
 
-These items do not block this product contract, but must be refined in later
-phases:
+These items are now partially constrained by product decisions, but still need
+architectural or delivery detail:
 
-- provider priority and first supported provider order;
-- concrete frequency, backoff, cooldown, cache, retry, and suspension values
-  per provider;
-- exact TOML configuration format;
-- exact export contract and Google Sheets format;
-- browser automation tool choice;
-- packaging and Docker strategy;
-- SQLite schema, retention, and deduplication policy.
+- Google Flights is the first development provider, but the full provider
+  delivery order is still a delivery-map decision;
+- operational defaults exist, but provider-specific tuning must be refined
+  during provider preflight;
+- the initial TOML contract is documented, but parser and settings-library
+  choices belong to implementation;
+- the Google Sheets export contract is documented, but authentication flow and
+  API details belong to implementation;
+- Playwright is the recommended initial browser automation tool, but final
+  confirmation belongs to the architectural baseline;
+- Docker, Linux packages, and Windows packages are target distribution forms,
+  but build tooling remains pending;
+- SQLite retention and exact-duplicate behavior are constrained here, but the
+  physical schema and migration strategy remain pending.
 
 ## Related Documents
 
@@ -268,4 +348,6 @@ phases:
 - [Business Rules](business-rules.md)
 - [Non-Functional Requirements](non-functional-requirements.md)
 - [Glossary](glossary.md)
-
+- [Configuration Contract](configuration-contract.md)
+- [Export Contract](export-contract.md)
+- [Distribution Targets](distribution-targets.md)

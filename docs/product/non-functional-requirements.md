@@ -16,9 +16,26 @@ unless continuing would produce unsafe or invalid behavior.
 ## NFR-003 - Bounded provider interaction
 
 Provider interaction must support operational limits such as frequency,
-backoff, cooldown, cache reuse, and temporary suspension. Concrete values are
-provider-specific and remain pending until provider planning and adapter
-preflight.
+backoff, cooldown, cache reuse, and temporary suspension.
+
+Initial global defaults:
+
+- maximum concurrent providers: `1`;
+- delay between provider attempts in one run: `30` seconds;
+- provider timeout: `90` seconds;
+- retry attempts after transient failures: `1`;
+- initial retry backoff: `300` seconds;
+- retry backoff multiplier: `2.0`;
+- maximum retry backoff: `3600` seconds;
+- cooldown after rate limit, throttling, IP block, or access denial:
+  `3600` seconds;
+- cache TTL for equivalent search requests: `3600` seconds;
+- temporary suspension after consecutive limit failures: `3` failures;
+- temporary suspension duration: `86400` seconds;
+- scheduling jitter: `20` percent.
+
+Each value must be configurable through a CLI flag for one run, through global
+TOML configuration, and through provider-specific TOML configuration.
 
 ## NFR-004 - No traffic escalation
 
@@ -87,3 +104,30 @@ state affected it.
 Export destinations must be treated as side consumers. An export failure must
 not corrupt or redefine the canonical local history.
 
+## NFR-016 - Distribution targets
+
+Ariadne must support Docker-based deployment and versioned package
+distribution for distinct Linux and Windows environments.
+
+Initial distribution targets are:
+
+- a Docker image;
+- Python package artifacts suitable for versioned installation;
+- Debian package distribution;
+- Fedora package distribution;
+- openSUSE package distribution;
+- Windows package distribution.
+
+WinGet is the recommended first Windows package manager target. Chocolatey may
+be added later if there is a clear maintenance benefit.
+
+## NFR-017 - Google Sheets append safety
+
+Google Sheets export must append data rows without writing headers. Ariadne
+must identify the next writable row through the configured sheet range or the
+Google Sheets append behavior before sending data.
+
+## NFR-018 - Initial airport identity
+
+Origin and destination identity must initially use IATA airport codes. Airports
+without IATA codes are outside the minimum initial search contract.

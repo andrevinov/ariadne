@@ -22,8 +22,8 @@ CLI user.
 
 Minimum input:
 
-- origin;
-- destination;
+- origin airport as an IATA airport code;
+- destination airport as an IATA airport code;
 - outbound date.
 
 Optional input:
@@ -50,35 +50,42 @@ Optional input:
 
 - The user provides optional filters, and Ariadne applies them when the
   provider supports the requested fields.
-- The user selects a subset of providers, and Ariadne queries only that subset.
-- A provider requires a field that is optional globally, and Ariadne reports
-  that provider-specific requirement without changing the global minimum
-  search contract.
+- The user provides no provider-selection flag, and Ariadne queries every
+  configured provider that can operate with the supplied input.
+- The user provides no provider-selection flag, and Ariadne skips providers
+  that need missing provider-specific parameters.
+- The user uses `--all`, `--include`, or `--exclude`, and Ariadne validates
+  every explicitly selected provider before collection starts.
 
 ### Expected failures
 
 - A required field is missing.
 - A date or filter has an invalid format.
 - No provider is enabled.
-- A provider-specific required field is missing.
+- A provider-specific required field is missing for an explicitly selected
+  provider.
 
 ### Related rules
 
 - BR-001
 - BR-002
+- BR-019
 - BR-015
 - BR-016
 
 ### Acceptance criteria
 
-- AC-001: A request with origin, destination, and outbound date is a valid
-  minimum search request.
+- AC-001: A request with origin IATA airport code, destination IATA airport
+  code, and outbound date is a valid minimum search request.
 - AC-002: Return date, passenger count, cabin class, airline, price range, and
   provider-specific parameters are optional globally.
-- AC-003: A provider-specific required field is reported for that provider
-  without silently becoming a global required field.
+- AC-003: Without provider-selection flags, a provider that requires a missing
+  provider-specific parameter is skipped from the default provider set.
 - AC-004: Invalid input is reported as an input failure, not as a provider
   failure.
+- AC-023: With `--all`, `--include`, or `--exclude`, a selected provider that
+  requires a missing parameter causes an informative input error that names the
+  provider and missing parameter.
 
 ### Out of scope
 
@@ -138,6 +145,7 @@ Scheduled execution.
 - BR-013
 - BR-015
 - BR-016
+- BR-020
 
 ### Acceptance criteria
 
@@ -146,6 +154,8 @@ Scheduled execution.
 - AC-006: Runtime history is read from and written to local persistence, not
   stored only in memory.
 - AC-007: Missing configuration is reported as an execution input failure.
+- AC-024: CLI flags can override operational limits from TOML for the current
+  run.
 
 ### Out of scope
 
@@ -192,6 +202,8 @@ Scheduled execution or CLI user.
 - A provider is rate limited, throttled, blocked, or unavailable.
 - A provider is skipped because cooldown is active.
 - Cached data is reused according to the configured policy.
+- No provider-selection flag was used, and a provider is skipped because the
+  supplied input lacks provider-specific required parameters.
 
 ### Expected failures
 
@@ -213,6 +225,8 @@ Scheduled execution or CLI user.
 - BR-010
 - BR-011
 - BR-012
+- BR-019
+- BR-020
 
 ### Acceptance criteria
 
@@ -226,6 +240,8 @@ Scheduled execution or CLI user.
 - AC-011: Ariadne responds to blocked or limited provider access with reduced
   frequency, backoff, cooldown, cache reuse, or temporary suspension instead
   of traffic escalation or network-origin rotation.
+- AC-025: Google Flights is the first provider used for development, but that
+  does not make it the highest-priority runtime provider.
 
 ### Out of scope
 
@@ -398,6 +414,10 @@ CLI user or side consumer.
 
 - No export destination is configured, and results remain available locally.
 - Google Sheets is configured as a side display destination.
+- Google Sheets columns are configured, and Ariadne sends values in that
+  configured column order.
+- Google Sheets columns are not configured, and Ariadne uses the same fields
+  returned by the normal application output.
 
 ### Expected failures
 
@@ -410,6 +430,7 @@ CLI user or side consumer.
 - BR-013
 - BR-014
 - BR-017
+- BR-021
 
 ### Acceptance criteria
 
@@ -418,11 +439,13 @@ CLI user or side consumer.
 - AC-021: Export failures do not redefine the persisted local history.
 - AC-022: Secrets required for exports are not written to logs or repository
   files.
+- AC-026: Google Sheets export sends data rows only and does not create header
+  rows.
+- AC-027: Ariadne can determine the next writable row before sending data to a
+  configured sheet.
 
 ### Out of scope
 
-- Defining a spreadsheet format.
 - Implementing export credentials.
 - Making Google Sheets part of the first executable flow unless a later
   delivery map includes it.
-
